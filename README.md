@@ -28,7 +28,7 @@ Inspired by the look of Complementary: clean, colorful, soft and atmospheric —
 ## Installation
 
 1. Install **Iris** (Fabric/NeoForge) for your Minecraft version.
-2. Download `Yukitus-Shader-v1.0.1.zip` (do **not** unzip it).
+2. Download the latest `Yukitus-Shader-vX.Y.Z.zip` from the [Releases](https://github.com/Yukitus86/Yukitus-Shader/releases) page (do **not** unzip it).
 3. Put the zip into `.minecraft/shaderpacks/`.
 4. In game: *Options → Video Settings → Shader Packs → Yukitus Shader*.
 
@@ -65,6 +65,9 @@ Xvfb :99 & DISPLAY=:99 python3 tools/harness/iris_emu.py compile
 DISPLAY=:99 python3 tools/harness/iris_emu.py render --times 0.2,0.48,0.75
 python3 tools/build.py
 ```
+
+Release: bump `VERSION` in `tools/build.py`, add `.github/release-notes/vX.Y.Z.md`, then push the tag `vX.Y.Z`.
+The `Release` workflow validates the pack, builds the zip from the tag and publishes it as a GitHub Release.
 
 ## Credits
 

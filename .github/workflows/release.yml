@@ -1,0 +1,54 @@
+name: Release
+
+# Pushing a tag like v1.0.1 builds the shader pack zip from that tag and publishes it as a GitHub Release.
+# The tag must match VERSION in tools/build.py. Release notes are read from .github/release-notes/<tag>.md.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)publish, e.g. v1.0.1"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Validate options, menus, profiles and lang files
+        run: python3 tools/validate.py
+
+      - name: Build shader pack zip
+        run: python3 tools/build.py
+
+      - name: Check that the tag matches the build version
+        run: |
+          version=$(python3 -c "import re; print(re.search(r'VERSION = \"([^\"]+)\"', open('tools/build.py').read()).group(1))")
+          if [ "v$version" != "$TAG" ]; then
+            echo "Tag $TAG does not match VERSION v$version in tools/build.py"
+            exit 1
+          fi
+
+      - name: Publish release
+        run: |
+          zip="dist/Yukitus-Shader-${TAG}.zip"
+          notes=".github/release-notes/${TAG}.md"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$zip" --clobber
+          elif [ -f "$notes" ]; then
+            gh release create "$TAG" "$zip" --verify-tag --title "Yukitus Shader $TAG" --notes-file "$notes"
+          else
+            gh release create "$TAG" "$zip" --verify-tag --title "Yukitus Shader $TAG" --generate-notes
+          fi

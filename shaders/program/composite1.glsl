@@ -27,6 +27,7 @@ uniform sampler2D depthtex0;
 /* RENDERTARGETS: 0 */
 layout(location = 0) out vec4 outColor;
 
+// Henyey-Greenstein phase function
 float phaseHG(float c, float g) {
     float g2 = g * g;
     return (1.0 - g2) / (4.0 * PI * pow(1.0 + g2 - 2.0 * g * c, 1.5));

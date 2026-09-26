@@ -23,7 +23,7 @@ uniform sampler2D depthtex0;
 
 #include "/lib/bloom_tiles.glsl"
 
-// bicubic b-spline upsampling (4 bilinear taps)
+// bicubic b-spline upsampling with 4 bilinear taps (Sigg & Hadwiger, GPU Gems 2 ch. 20)
 vec3 textureBicubic(sampler2D tex, vec2 uv) {
     vec2 res = vec2(viewWidth, viewHeight);
     vec2 pos = uv * res - 0.5;
@@ -42,7 +42,7 @@ vec3 textureBicubic(sampler2D tex, vec2 uv) {
 }
 
 vec3 tonemapACES(vec3 x) {
-    // Stephen Hill's fitted ACES
+    // Stephen Hill's fitted ACES RRT + ODT (from BakingLab, MIT License)
     const mat3 inputM = mat3(0.59719, 0.07600, 0.02840, 0.35458, 0.90834, 0.13383, 0.04823, 0.01566, 0.83777);
     const mat3 outputM = mat3(1.60475, -0.10208, -0.00327, -0.53108, 1.10813, -0.07276, -0.07367, -0.00605, 1.07602);
     x = inputM * x;
@@ -51,6 +51,7 @@ vec3 tonemapACES(vec3 x) {
     return saturate(outputM * (a / b));
 }
 
+// Timothy Lottes, "Advanced Techniques and Optimization of HDR Color Pipelines" (GDC 2016)
 vec3 tonemapLottes(vec3 x) {
     const float a = 1.6, d = 0.977, hdrMax = 12.0, midIn = 0.18, midOut = 0.267;
     float b = (-pow(midIn, a) + pow(hdrMax, a) * midOut) / ((pow(hdrMax, a * d) - pow(midIn, a * d)) * midOut);
@@ -58,6 +59,7 @@ vec3 tonemapLottes(vec3 x) {
     return saturate(pow(x, vec3(a)) / (pow(x, vec3(a * d)) * b + c));
 }
 
+// Reinhard (2002), "Jodie" variant from the Shadertoy tonemapping comparisons
 vec3 tonemapReinhardJodie(vec3 c) {
     float l = luma(c);
     vec3 tc = c / (1.0 + c);

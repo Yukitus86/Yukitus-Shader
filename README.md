@@ -28,7 +28,7 @@ Inspired by the look of Complementary: clean, colorful, soft and atmospheric —
 ## Installation
 
 1. Install **Iris** (Fabric/NeoForge) for your Minecraft version.
-2. Download `Yukitus-Shader-v1.0.0.zip` (do **not** unzip it).
+2. Download `Yukitus-Shader-v1.0.1.zip` (do **not** unzip it).
 3. Put the zip into `.minecraft/shaderpacks/`.
 4. In game: *Options → Video Settings → Shader Packs → Yukitus Shader*.
 
@@ -65,6 +65,28 @@ Xvfb :99 & DISPLAY=:99 python3 tools/harness/iris_emu.py compile
 DISPLAY=:99 python3 tools/harness/iris_emu.py render --times 0.2,0.48,0.75
 python3 tools/build.py
 ```
+
+## Credits
+
+All shader code in this pack was written from scratch for Yukitus Shader. No code from Complementary Shaders
+(or any other shader pack) is included; Complementary only served as a visual reference for the overall look.
+The pack builds on the following published techniques:
+
+| Technique | Source |
+|---|---|
+| Hash functions (`hash12`, `hash13`, `hash23`) | Dave Hoskins, "Hash without Sine" (MIT License, © 2014 David Hoskins) |
+| Filmic ACES fit (RRT + ODT) | Stephen Hill, via BakingLab (MIT License) |
+| Tonemapping curves | Timothy Lottes, "Advanced Techniques and Optimization of HDR Color Pipelines" (GDC 2016); Reinhard et al. (2002) and the "Jodie" variant from the Shadertoy tonemapping comparisons |
+| Interleaved gradient noise | Jorge Jimenez, "Next Generation Post Processing in Call of Duty: Advanced Warfare" (SIGGRAPH 2014) |
+| Temporal anti-aliasing | Brian Karis, "High Quality Temporal Supersampling" (SIGGRAPH 2014); Marco Salvi, variance clipping (GDC 2016) |
+| 5-tap Catmull-Rom history sampling | Jorge Jimenez, Filmic SMAA (SIGGRAPH 2016); optimized version by Matt Pettineo |
+| TAA jitter | Halton (2, 3) low-discrepancy sequence (J. H. Halton, 1960) |
+| Bicubic B-spline upsampling | Sigg & Hadwiger, "Fast Third-Order Texture Filtering" (GPU Gems 2, ch. 20) |
+| Octahedral normal encoding | Cigolle et al., "A Survey of Efficient Representations for Independent Unit Vectors" (JCGT 2014) |
+| Specular lighting | GGX (Walter et al. 2007), Schlick's Fresnel approximation (1994) |
+| Light scattering | Henyey–Greenstein phase function (1941) |
+| Soft shadow / SSAO sampling pattern | Vogel (golden angle) spiral disk |
+| Shader pack format | OptiFine `shaders.txt` documentation and the Iris shader pack docs; the shadow map distortion formula, bloom mip tiles and per-dimension program folders are common conventions in Minecraft shader packs |
 
 ## License
 

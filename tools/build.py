@@ -3,7 +3,7 @@
 import os
 import zipfile
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, ".."))
 OUT = os.path.join(REPO, "dist", f"Yukitus-Shader-v{VERSION}.zip")

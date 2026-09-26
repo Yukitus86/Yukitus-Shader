@@ -31,12 +31,12 @@ vec3 yCoCgToRgb(vec3 c) {
     return vec3(c.x + c.y - c.z, c.x + c.z, c.x - c.y - c.z);
 }
 
-// perceptual weighting to reduce flicker of very bright pixels
+// perceptual weighting to reduce flicker of very bright pixels (Brian Karis, "High Quality Temporal Supersampling" 2014)
 vec3 compress(vec3 c) { return c / (1.0 + luma(c)); }
 vec3 decompress(vec3 c) { return c / max(1.0 - luma(c), 1e-3); }
 
 vec3 sampleHistory(vec2 uv) {
-    // 5-tap Catmull-Rom for a sharp history
+    // 5-tap Catmull-Rom for a sharp history (Jorge Jimenez, Filmic SMAA 2016; Matt Pettineo's optimized version)
     vec2 res = vec2(viewWidth, viewHeight);
     vec2 pos = uv * res;
     vec2 center = floor(pos - 0.5) + 0.5;
@@ -103,7 +103,7 @@ void main() {
             prevUV = prevClip.xy / prevClip.w * 0.5 + 0.5;
         }
 
-        // neighborhood statistics
+        // neighborhood statistics: variance clipping (Marco Salvi, GDC 2016) in YCoCg
         vec2 px = texelSize();
         vec3 m1 = vec3(0.0), m2 = vec3(0.0);
         vec3 cMin = vec3(1e9), cMax = vec3(-1e9);

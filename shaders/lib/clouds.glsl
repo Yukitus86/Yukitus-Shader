@@ -41,6 +41,7 @@ float cloudDensity(vec3 pos, bool detail) {
     return saturate(d * 3.0);
 }
 
+// two-lobe Henyey-Greenstein phase function
 float cloudPhase(float cosTheta) {
     float g1 = 0.75, g2 = -0.25;
     float a = (1.0 - g1 * g1) / pow(1.0 + g1 * g1 - 2.0 * g1 * cosTheta, 1.5);

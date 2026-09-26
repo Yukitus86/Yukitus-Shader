@@ -5,10 +5,12 @@
 #ifndef LIGHTING_GLSL
 #define LIGHTING_GLSL
 
+// Schlick (1994) Fresnel approximation
 float fresnelSchlick(float cosTheta, float f0) {
     return f0 + (1.0 - f0) * pow(1.0 - saturate(cosTheta), 5.0);
 }
 
+// GGX distribution (Walter et al. 2007) with Smith-Schlick visibility
 float ggxSpecular(vec3 n, vec3 v, vec3 l, float smoothness) {
     float rough = max(pow2(1.0 - smoothness), 0.02);
     vec3 h = normalize(l + v);

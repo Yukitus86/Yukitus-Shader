@@ -143,6 +143,7 @@ float linearizeDepth(float depth) {
 //--------------------------------------------------------------------------------------------------
 // Noise
 //--------------------------------------------------------------------------------------------------
+// hash12 / hash13 / hash23: "Hash without Sine" by Dave Hoskins (MIT License, (c) 2014 David Hoskins)
 float hash12(vec2 p) {
     vec3 p3 = fract(vec3(p.xyx) * 0.1031);
     p3 += dot(p3, p3.yzx + 33.33);
@@ -161,7 +162,7 @@ vec2 hash23(vec3 p3) {
     return fract((p3.xx + p3.yz) * p3.zy);
 }
 
-// Interleaved gradient noise, animated when TAA is on so it gets resolved over time
+// Interleaved gradient noise (Jorge Jimenez, SIGGRAPH 2014), animated when TAA is on so it gets resolved over time
 float dither(vec2 fragCoord) {
     #ifdef TAA
         fragCoord += 5.588238 * float(frameCounter & 63);
@@ -169,6 +170,7 @@ float dither(vec2 fragCoord) {
     return fract(52.9829189 * fract(0.06711056 * fragCoord.x + 0.00583715 * fragCoord.y));
 }
 
+// Vogel (golden angle) spiral disk
 vec2 vogelDisk(int i, int n, float phi) {
     float r = sqrt((float(i) + 0.5) / float(n));
     float theta = float(i) * GOLDEN_ANGLE + phi;
@@ -178,6 +180,7 @@ vec2 vogelDisk(int i, int n, float phi) {
 //--------------------------------------------------------------------------------------------------
 // Packing
 //--------------------------------------------------------------------------------------------------
+// Octahedral normal encoding (Cigolle et al. 2014, "A Survey of Efficient Representations for Independent Unit Vectors")
 vec2 encodeNormal(vec3 n) {
     n /= abs(n.x) + abs(n.y) + abs(n.z);
     if (n.z < 0.0) {
@@ -209,15 +212,26 @@ vec2 unpack2x8(float f) {
 //--------------------------------------------------------------------------------------------------
 // Temporal jitter
 //--------------------------------------------------------------------------------------------------
-const vec2 taaOffsets[8] = vec2[8](
-    vec2( 0.125, -0.375), vec2(-0.125,  0.375),
-    vec2( 0.625,  0.125), vec2( 0.375, -0.625),
-    vec2(-0.625,  0.625), vec2(-0.875, -0.125),
-    vec2( 0.375,  0.875), vec2( 0.875, -0.875)
-);
+// Radical inverse of i in the given base (digits mirrored behind the decimal point)
+float radicalInverse(int i, int base) {
+    float invBase = 1.0 / float(base);
+    float f = invBase;
+    float result = 0.0;
+    for (int k = 0; k < 4; k++) {   // 4 digits cover indices 1..8 in base 2 and 3
+        if (i <= 0) break;
+        result += f * float(i % base);
+        i /= base;
+        f *= invBase;
+    }
+    return result;
+}
 
+// Sub-pixel camera jitter from the Halton (2, 3) low-discrepancy sequence, 8 samples, +-0.5 px.
+// Returned in NDC units (one pixel = 2 / resolution).
 vec2 taaJitter() {
-    return taaOffsets[frameCounter & 7] / vec2(viewWidth, viewHeight);
+    int i = (frameCounter & 7) + 1; // index 0 would be (0, 0)
+    vec2 h = vec2(radicalInverse(i, 2), radicalInverse(i, 3)) - 0.5;
+    return h * 2.0 / vec2(viewWidth, viewHeight);
 }
 
 //--------------------------------------------------------------------------------------------------

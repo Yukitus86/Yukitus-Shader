@@ -20,7 +20,7 @@ from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SHADERS = os.path.abspath(os.path.join(HERE, "..", "..", "shaders"))
-GLCTX = os.environ.get("GLCTX_SO", "/tmp/claude-0/glctx.so")
+GLCTX = os.environ.get("GLCTX_SO", os.path.join(HERE, ".build", "glctx.so"))  # built by setup.sh
 
 os.environ.setdefault("DISPLAY", ":99")
 os.environ.setdefault("PYOPENGL_PLATFORM", "glx")

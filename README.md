@@ -61,10 +61,13 @@ Regenerate + test:
 
 ```
 python3 tools/generate.py && python3 tools/lang.py && python3 tools/validate.py
-Xvfb :99 & DISPLAY=:99 python3 tools/harness/iris_emu.py compile
-DISPLAY=:99 python3 tools/harness/iris_emu.py render --times 0.2,0.48,0.75
+bash tools/harness/setup.sh          # GL headers, Python deps, GLX helper, Xvfb :99
+python3 tools/harness/iris_emu.py compile
+python3 tools/harness/iris_emu.py render --times 0.2,0.48,0.75
 python3 tools/build.py
 ```
+
+More details on the pipeline, buffers, block ids and workflow: see `CLAUDE.md`.
 
 Release: bump `VERSION` in `tools/build.py`, add `.github/release-notes/vX.Y.Z.md`, then push the tag `vX.Y.Z`
 (or start the `Release` workflow manually in the Actions tab and enter the tag; it creates the tag itself).

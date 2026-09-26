@@ -21,7 +21,7 @@ void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     lmcoord = saturate(((gl_TextureMatrix[1] * gl_MultiTexCoord1).xy - 0.03125) * 1.06667);
     glcolor = gl_Color;
-    normal = normalize(gl_NormalMatrix * gl_Normal);
+    normal = safeNormalize(gl_NormalMatrix * gl_Normal, vec3(0.0, 0.0, 1.0));
     #ifdef GB_WATER
         matId = int(mc_Entity.x + 0.5);
     #else
@@ -71,7 +71,7 @@ void main() {
     #else
         vec4 albedo = texture(gtexture, texcoord) * glcolor;
     #endif
-    vec3 geoNormal = normalize(normal);
+    vec3 geoNormal = safeNormalize(normal, vec3(0.0, 0.0, 1.0));
     if (!gl_FrontFacing) geoNormal = -geoNormal;
     float noise = dither(gl_FragCoord.xy);
     vec3 playerPos = viewToPlayer(viewPos);

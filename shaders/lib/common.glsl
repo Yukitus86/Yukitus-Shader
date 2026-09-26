@@ -102,6 +102,10 @@ float luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
 float pow2(float x) { return x * x; }
 float pow4(float x) { x *= x; return x * x; }
 float pow8(float x) { x *= x; x *= x; return x * x; }
+vec3 safeNormalize(vec3 v, vec3 fallback) {
+    float l = dot(v, v);
+    return l > 1e-12 ? v * inversesqrt(l) : fallback;
+}
 float maxOf(vec3 v) { return max(v.x, max(v.y, v.z)); }
 float minOf(vec3 v) { return min(v.x, min(v.y, v.z)); }
 

@@ -65,7 +65,10 @@ vec4 screenSpaceReflection(vec3 viewPos, vec3 reflDir, float noise) {
             float fd = texture(depthtex0, fp.xy).r;
             float linRay = linearizeDepth(fp.z);
             float linScene = linearizeDepth(fd);
-            float thickness = max(0.5, linScene * 0.08) + length(delta.xy) * 2.0;
+            // tolerance: one coarse step of view depth, plus a little slack for far surfaces
+            float tp = prevT * prevT * 0.4 + prevT * 0.6;
+            float stepDepth = abs(linearizeDepth(p.z) - linearizeDepth((start + delta * tp).z));
+            float thickness = max(0.25, linScene * 0.02) + stepDepth;
             if (abs(linRay - linScene) < thickness && fd < 1.0) {
                 hitPos = fp;
             }
@@ -78,7 +81,7 @@ vec4 screenSpaceReflection(vec3 viewPos, vec3 reflDir, float noise) {
     if (hitPos.x < 0.0) return vec4(0.0);
     vec2 edge = smoothstep(0.0, 0.08, hitPos.xy) * smoothstep(1.0, 0.92, hitPos.xy);
     float fade = edge.x * edge.y;
-    return vec4(texture(colortex0, hitPos.xy).rgb, fade);
+    return vec4(textureLod(colortex0, hitPos.xy, 0.0).rgb, fade);
 }
 
 #endif

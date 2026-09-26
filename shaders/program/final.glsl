@@ -76,16 +76,16 @@ void main() {
         }
     #endif
 
-    vec3 color = texture(colortex0, uv).rgb;
+    vec3 color = textureLod(colortex0, uv, 0.0).rgb;
 
     //---------------------------------------------------------------------------------- sharpening
     #ifdef TAA
     if (SHARPENING > 0.0) {
         vec2 px = texelSize();
-        vec3 n = texture(colortex0, uv + vec2(0.0, px.y)).rgb;
-        vec3 s = texture(colortex0, uv - vec2(0.0, px.y)).rgb;
-        vec3 e = texture(colortex0, uv + vec2(px.x, 0.0)).rgb;
-        vec3 w = texture(colortex0, uv - vec2(px.x, 0.0)).rgb;
+        vec3 n = textureLod(colortex0, uv + vec2(0.0, px.y), 0.0).rgb;
+        vec3 s = textureLod(colortex0, uv - vec2(0.0, px.y), 0.0).rgb;
+        vec3 e = textureLod(colortex0, uv + vec2(px.x, 0.0), 0.0).rgb;
+        vec3 w = textureLod(colortex0, uv - vec2(px.x, 0.0), 0.0).rgb;
         vec3 mn = min(color, min(min(n, s), min(e, w)));
         vec3 mx = max(color, max(max(n, s), max(e, w)));
         vec3 blur = (n + s + e + w) * 0.25;
@@ -108,7 +108,7 @@ void main() {
                 float rot = dither(gl_FragCoord.xy) * TAU;
                 for (int i = 0; i < taps; i++) {
                     vec2 o = vogelDisk(i, taps, rot) * coc * vec2(1.0 / aspectRatio, 1.0);
-                    acc += texture(colortex0, uv + o).rgb;
+                    acc += textureLod(colortex0, uv + o, 0.0).rgb;
                 }
                 color = acc / float(taps);
             }
@@ -131,7 +131,7 @@ void main() {
             vec3 acc = color;
             float noise = dither(gl_FragCoord.xy);
             for (int i = 1; i < 6; i++) {
-                acc += texture(colortex0, uv - vel * (float(i) + noise - 0.5) / 5.0).rgb;
+                acc += textureLod(colortex0, uv - vel * (float(i) + noise - 0.5) / 5.0, 0.0).rgb;
             }
             color = acc / 6.0;
         }

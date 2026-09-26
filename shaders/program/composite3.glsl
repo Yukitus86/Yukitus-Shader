@@ -27,7 +27,7 @@ layout(location = 0) out vec4 outBloom;
 
 void main() {
     vec3 result = vec3(0.0);
-    #ifdef BLOOM
+    {
         for (int k = 0; k < BLOOM_TILE_COUNT; k++) {
             float s = bloomTileScale(k);
             vec2 off = bloomTileOffset(k);
@@ -42,11 +42,12 @@ void main() {
                        + textureLod(colortex0, local + vec2(-texel.x,  texel.y), lod).rgb * 0.125
                        + textureLod(colortex0, local + vec2( texel.x, -texel.y), lod).rgb * 0.125
                        + textureLod(colortex0, local + vec2(-texel.x, -texel.y), lod).rgb * 0.125;
-                result = min(c, vec3(256.0));
+                result = clamp(c, vec3(0.0), vec3(256.0));
+                if (any(isnan(result))) result = vec3(0.0);
                 break;
             }
         }
-    #endif
+    }
     outBloom = vec4(result, 1.0);
 }
 #endif

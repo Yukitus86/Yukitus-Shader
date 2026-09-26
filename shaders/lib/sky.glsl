@@ -109,7 +109,8 @@ vec3 getMoonDisc(vec3 viewDir) {
     float d = dot(viewDir, moonV);
     if (d < cos(radius * 1.3)) return vec3(0.0);
 
-    vec3 upRef = abs(moonV.y) > 0.99 ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 1.0, 0.0);
+    vec3 upRef = getUpDir();
+    if (abs(dot(upRef, moonV)) > 0.99) upRef = normalize(gbufferModelView[0].xyz);
     vec3 right = normalize(cross(upRef, moonV));
     vec3 up = cross(moonV, right);
     vec3 rel = viewDir - moonV * d;
@@ -134,13 +135,13 @@ vec3 getMoonDisc(vec3 viewDir) {
 //--------------------------------------------------------------------------------------------------
 // Aurora borealis
 //--------------------------------------------------------------------------------------------------
-vec3 getAurora(vec3 worldDir, float dither) {
+vec3 getAurora(vec3 worldDir, float noise) {
     if (worldDir.y < 0.02) return vec3(0.0);
     vec3 result = vec3(0.0);
     const int steps = 10;
     float t = frameTimeCounter * 0.012;
     for (int i = 0; i < steps; i++) {
-        float fi = (float(i) + dither) / float(steps);
+        float fi = (float(i) + noise) / float(steps);
         float h = 1.0 + fi * 0.45;
         vec2 p = worldDir.xz / worldDir.y * h * 0.35;
         vec2 warp = vec2(texture(noisetex, p * 0.08 + t * 0.3).r, texture(noisetex, p * 0.08 + 0.5 - t * 0.2).g) - 0.5;
@@ -187,7 +188,7 @@ vec3 getEndSky(vec3 viewDir, vec3 worldDir) {
 //--------------------------------------------------------------------------------------------------
 // Full sky for sky pixels
 //--------------------------------------------------------------------------------------------------
-vec3 getSkyFull(vec3 viewDir, vec3 worldDir, float dither) {
+vec3 getSkyFull(vec3 viewDir, vec3 worldDir, float noise) {
     #if defined OVERWORLD
         vec3 sky = getSkyColor(viewDir);
         float e = getSunElevation();
@@ -205,7 +206,7 @@ vec3 getSkyFull(vec3 viewDir, vec3 worldDir, float dither) {
                 float auroraAmount = 1.0;
             #endif
             if (auroraAmount * nightF * clearF > 0.01) {
-                sky += getAurora(worldDir, dither) * auroraAmount * nightF * clearF * NIGHT_BRIGHTNESS;
+                sky += getAurora(worldDir, noise) * auroraAmount * nightF * clearF * NIGHT_BRIGHTNESS;
             }
         #endif
 

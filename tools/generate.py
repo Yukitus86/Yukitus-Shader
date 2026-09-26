@@ -26,7 +26,7 @@ PROGRAMS = {
     "gbuffers_water":           ("gbuffers_translucent.glsl", ["GB_WATER"]),
     "gbuffers_hand_water":      ("gbuffers_translucent.glsl", ["GB_HAND_WATER"]),
     "gbuffers_weather":         ("gbuffers_weather.glsl", []),
-    "gbuffers_beaconbeam":      ("gbuffers_unlit.glsl", ["GB_BEACON"]),
+    "gbuffers_beaconbeam":      ("gbuffers_beacon.glsl", []),
     "gbuffers_spidereyes":      ("gbuffers_unlit.glsl", ["GB_SPIDEREYES"]),
     "gbuffers_armor_glint":     ("gbuffers_unlit.glsl", ["GB_GLINT"]),
     "gbuffers_damagedblock":    ("gbuffers_unlit.glsl", ["GB_DAMAGED"]),
@@ -89,7 +89,7 @@ def tall(name):
 
 BLOCKS = {}
 
-short_plants = ["short_grass", "grass", "fern", "dead_bush", "dandelion", "poppy", "blue_orchid", "allium",
+short_plants = ["short_grass", "fern", "dead_bush", "dandelion", "poppy", "blue_orchid", "allium",
                 "azure_bluet", "red_tulip", "orange_tulip", "white_tulip", "pink_tulip", "oxeye_daisy",
                 "cornflower", "lily_of_the_valley", "wither_rose", "torchflower", "sweet_berry_bush",
                 "crimson_roots", "warped_roots", "nether_sprouts", "open_eyeblossom", "closed_eyeblossom",
@@ -114,14 +114,14 @@ BLOCKS[10007] = ["sugar_cane", "kelp", "kelp_plant", "bamboo", "big_dripleaf", "
                  "cactus", "melon_stem", "pumpkin_stem", "attached_melon_stem", "attached_pumpkin_stem",
                  "sea_pickle", "brown_mushroom", "red_mushroom", "crimson_fungus", "warped_fungus"]
 
-BLOCKS[10010] = ["water", "flowing_water", "bubble_column"]
+BLOCKS[10010] = ["water", "bubble_column"]
 BLOCKS[10011] = ["ice", "frosted_ice", "packed_ice", "blue_ice"]
 BLOCKS[10012] = ["glass", "glass_pane", "tinted_glass"] + [f"{c}_stained_glass" for c in COLORS] + \
                 [f"{c}_stained_glass_pane" for c in COLORS]
 BLOCKS[10013] = ["slime_block", "honey_block"]
 BLOCKS[10014] = ["nether_portal"]
 
-BLOCKS[10020] = ["lava", "flowing_lava"]
+BLOCKS[10020] = ["lava"]
 BLOCKS[10021] = ["fire", "campfire:lit=true"]
 BLOCKS[10022] = ["glowstone", "sea_lantern", "shroomlight", "redstone_lamp:lit=true", "ochre_froglight",
                  "verdant_froglight", "pearlescent_froglight", "beacon", "end_rod", "conduit",
@@ -134,20 +134,20 @@ BLOCKS[10023] = ["torch", "wall_torch", "lantern", "jack_o_lantern", "furnace:li
                  "smoker:lit=true", "candle:lit=true", "cake_with_candles:lit=true"] + \
                 [f"{c}_candle:lit=true" for c in COLORS] + \
                 [f"{c}_candle_cake:lit=true" for c in COLORS] + ["candle_cake:lit=true"]
-BLOCKS[10024] = ["coal_ore", "iron_ore", "gold_ore", "diamond_ore", "emerald_ore", "lapis_ore", "redstone_ore",
+BLOCKS[10024] = ["coal_ore", "iron_ore", "gold_ore", "diamond_ore", "emerald_ore", "lapis_ore", "redstone_ore:lit=false",
                  "copper_ore", "deepslate_coal_ore", "deepslate_iron_ore", "deepslate_gold_ore",
-                 "deepslate_diamond_ore", "deepslate_emerald_ore", "deepslate_lapis_ore", "deepslate_redstone_ore",
+                 "deepslate_diamond_ore", "deepslate_emerald_ore", "deepslate_lapis_ore", "deepslate_redstone_ore:lit=false",
                  "deepslate_copper_ore", "nether_gold_ore", "nether_quartz_ore", "ancient_debris",
                  "gilded_blackstone"]
 BLOCKS[10025] = ["magma_block"]
 BLOCKS[10026] = ["amethyst_cluster", "large_amethyst_bud", "medium_amethyst_bud", "small_amethyst_bud",
                  "amethyst_block", "budding_amethyst", "calibrated_sculk_sensor"]
 BLOCKS[10030] = ["iron_block", "gold_block", "netherite_block", "anvil", "chipped_anvil", "damaged_anvil",
-                 "iron_bars", "chain", "iron_chain", "iron_door", "iron_trapdoor", "cauldron", "water_cauldron",
+                 "iron_bars", "iron_chain", "iron_door", "iron_trapdoor", "cauldron", "water_cauldron",
                  "lava_cauldron", "powder_snow_cauldron", "hopper", "heavy_core", "bell", "raw_gold_block",
                  "heavy_weighted_pressure_plate", "light_weighted_pressure_plate"] + \
                 copper(["copper_block", "cut_copper", "cut_copper_stairs", "cut_copper_slab", "chiseled_copper",
-                        "copper_grate", "copper_door", "copper_trapdoor", "copper_bulb", "lightning_rod",
+                        "copper_grate", "copper_door", "copper_trapdoor", "copper_bulb:lit=false", "lightning_rod",
                         "copper_bars", "copper_chain", "copper_chest", "copper_golem_statue"])
 BLOCKS[10031] = ["polished_andesite", "polished_diorite", "polished_granite", "polished_deepslate",
                  "polished_blackstone", "polished_tuff", "polished_basalt", "smooth_stone", "smooth_stone_slab",

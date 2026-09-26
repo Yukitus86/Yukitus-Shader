@@ -25,8 +25,8 @@ void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     lmcoord = saturate(((gl_TextureMatrix[1] * gl_MultiTexCoord1).xy - 0.03125) * 1.06667);
     glcolor = gl_Color;
-    normal = normalize(gl_NormalMatrix * gl_Normal);
-    tangent = vec4(normalize(gl_NormalMatrix * at_tangent.xyz), at_tangent.w < 0.0 ? -1.0 : 1.0);
+    normal = safeNormalize(gl_NormalMatrix * gl_Normal, vec3(0.0, 0.0, 1.0));
+    tangent = vec4(safeNormalize(gl_NormalMatrix * at_tangent.xyz, vec3(1.0, 0.0, 0.0)), at_tangent.w < 0.0 ? -1.0 : 1.0);
 
     #ifdef GB_TERRAIN
         matId = int(mc_Entity.x + 0.5);
@@ -85,6 +85,15 @@ layout(location = 1) out vec4 outData;
 layout(location = 2) out vec4 outMat;
 
 void main() {
+    #ifdef GB_ENTITIES
+        if (entityId == 20001) { // lightning
+            outColor = vec4(vec3(0.8, 0.85, 1.0) * 40.0, 1.0);
+            outData = vec4(0.5, 0.5, 0.0, 1.0);
+            outMat = vec4(MAT_NOFOG / 255.0, 0.0, 0.0, 1.0);
+            return;
+        }
+    #endif
+
     vec4 albedo = texture(gtexture, texcoord);
     #ifdef GB_TERRAIN
         // separateAo: vertex alpha holds vanilla AO
@@ -108,15 +117,6 @@ void main() {
     vec3 albedoL = toLinear(albedo.rgb);
     Material mat = getMaterial(id, albedo.rgb);
 
-    #ifdef GB_ENTITIES
-        if (entityId == 20001) { // lightning
-            outColor = vec4(vec3(0.8, 0.85, 1.0) * 40.0, 1.0);
-            outData = vec4(0.5, 0.5, 0.0, 1.0);
-            outMat = vec4(MAT_NOFOG / 255.0, 0.0, 0.0, 1.0);
-            return;
-        }
-    #endif
-
     #ifdef GB_BLOCK
         if (id == 10060) { // end portal / gateway: parallax star field
             vec3 dir = normalize(viewToPlayer(viewPos) - gbufferModelViewInverse[3].xyz);
@@ -136,7 +136,7 @@ void main() {
         }
     #endif
 
-    vec3 geoNormal = normalize(normal);
+    vec3 geoNormal = safeNormalize(normal, vec3(0.0, 0.0, 1.0));
     if (!gl_FrontFacing && mat.sss > 0.0) geoNormal = -geoNormal;
     vec3 n = geoNormal;
 
@@ -199,7 +199,8 @@ void main() {
     float noise = dither(gl_FragCoord.xy);
     LightingResult light = getLighting(albedoL, viewPos, n, geoNormal, lm, vanillaAO, mat, noise);
 
-    outColor = vec4(light.color, 1.0);
+    // terrain has blending off; entities / block entities / hand keep vanilla translucency
+    outColor = vec4(light.color, albedo.a);
     outData = vec4(encodeNormal(n), pack2x8(lm), 1.0);
     outMat = vec4(mat.matClass / 255.0, mat.smoothness, pack2x8(vec2(mat.f0, light.aoWeight)), 1.0);
 }

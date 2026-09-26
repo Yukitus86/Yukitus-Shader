@@ -28,7 +28,7 @@ const float weights[5] = float[5](0.2270270270, 0.1945945946, 0.1216216216, 0.05
 
 void main() {
     vec3 result = vec3(0.0);
-    #ifdef BLOOM
+    {
         for (int k = 0; k < BLOOM_TILE_COUNT; k++) {
             float s = bloomTileScale(k);
             vec2 off = bloomTileOffset(k);
@@ -50,7 +50,7 @@ void main() {
                 break;
             }
         }
-    #endif
+    }
     outBloom = vec4(result, 1.0);
 }
 #endif

@@ -54,8 +54,10 @@ uniform sampler2D gtexture;
 layout(location = 0) out vec4 shadowColorOut;
 
 void main() {
-    vec4 albedo = texture(gtexture, texcoord) * glcolor;
+    // separateAo: vertex alpha is AO, not opacity
+    vec4 albedo = texture(gtexture, texcoord) * vec4(glcolor.rgb, 1.0);
 
+    #ifdef COLORED_SHADOWS
     if (matId == 10010) {
         // water: tinted caustic light instead of a hard shadow
         vec3 tint = vec3(0.55, 0.85, 0.95);
@@ -65,9 +67,14 @@ void main() {
         shadowColorOut = vec4(saturate(tint * 0.5), 1.0);
         return;
     }
+    #endif
 
     if (albedo.a < 0.1) discard;
 
+    #ifndef COLORED_SHADOWS
+        shadowColorOut = vec4(1.0);
+        return;
+    #endif
     vec3 transmit = mix(vec3(1.0), toLinear(albedo.rgb), saturate(albedo.a * 1.4));
     transmit *= 1.0 - albedo.a * 0.35;
     shadowColorOut = vec4(transmit * 0.5, 1.0);

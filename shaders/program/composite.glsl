@@ -74,7 +74,7 @@ vec3 getReflection(vec3 viewPos, vec3 n, float skyLM, float noise, bool allowSSR
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    vec3 color = texture(colortex0, texcoord).rgb;
+    vec3 color = textureLod(colortex0, texcoord, 0.0).rgb;
     float depth0 = texture(depthtex0, texcoord).r;
     float depth1 = texture(depthtex1, texcoord).r;
     vec3 viewPos0 = screenToView(vec3(texcoord, depth0));
@@ -94,7 +94,7 @@ void main() {
 
         vec2 refrUV = texcoord;
         float depth1R = depth1;
-        #ifdef WATER_REFRACTION
+        #if defined WATER_REFRACTION && WATER_STYLE != 2
         {
             vec3 viewPos1 = screenToView(vec3(texcoord, depth1));
             float thick = clamp(distance(viewPos0, viewPos1), 0.0, 2.5) * REFRACTION_STRENGTH;
@@ -112,9 +112,13 @@ void main() {
             }
         }
         #endif
-        color = texture(colortex0, refrUV).rgb;
+        color = textureLod(colortex0, refrUV, 0.0).rgb;
 
+        #if WATER_STYLE == 2
+        if (false) {
+        #else
         if (isEyeInWater == 0) {
+        #endif
             vec3 viewPos1 = screenToView(vec3(refrUV, depth1R));
             float thickness = depth1R >= 1.0 ? 64.0 : min(distance(viewPos0, viewPos1), 64.0);
             float density = WATER_FOG_DENSITY;
@@ -140,6 +144,8 @@ void main() {
         if (isEyeInWater == 1) F = NdotV < 0.66 ? 1.0 : F * 0.5; // total internal reflection
         vec3 refl = getReflection(viewPos0, n, isEyeInWater == 1 ? 0.0 : skyLM, noise, true);
         if (isEyeInWater == 1) refl = getWaterScatterColor() * 0.8;
+        // the background behind the water was already fogged in deferred; only fog what the surface adds
+        else refl = applyFog(refl, viewPos0, viewToPlayer(viewPos0));
         color = mix(color, refl, F);
 
         #if defined OVERWORLD || defined END
@@ -149,11 +155,6 @@ void main() {
             color += getLightColor() * specGGX(n, V, L, 0.985) * Fl * sunVis * (isEyeInWater == 1 ? 0.0 : 1.0);
         #endif
 
-        if (isEyeInWater == 0) {
-            // re-apply fog for the surface itself (background was fogged at its own distance)
-            vec3 foggedSurface = applyFog(color, viewPos0, viewToPlayer(viewPos0));
-            color = mix(color, foggedSurface, 0.85);
-        }
     }
     else if (type == 1 && !hand) {
         //------------------------------------------------------------------------------------ glass & co.
@@ -175,13 +176,15 @@ void main() {
         //------------------------------------------------------------------------------------ opaque reflections
         vec4 matData = texture(colortex2, texcoord);
         float smoothness = matData.g;
-        if (smoothness > 0.35) {
-            vec4 data = texture(colortex1, texcoord);
-            vec3 n = decodeNormal(data.xy);
+        vec2 fa = unpack2x8(matData.b);
+        float f0 = fa.x;
+        bool metal = f0 >= 0.9;
+        vec4 data = texture(colortex1, texcoord);
+        vec3 n = decodeNormal(data.xy);
+        // skip the expensive ray march when the reflection would barely be visible
+        float weightEstimate = smoothstep(0.35, 0.9, smoothness) * (metal ? 0.55 : fresnel(saturate(dot(n, -viewDir)), f0));
+        if (smoothness > 0.35 && weightEstimate > 0.03) {
             float sky = unpack2x8(data.b).y;
-            vec2 fa = unpack2x8(matData.b);
-            float f0 = fa.x;
-            bool metal = f0 >= 0.9;
             float rough = 1.0 - smoothness;
             // rough reflections: jitter normal, resolved by TAA
             vec2 h = vec2(noise, fract(noise * 13.37 + 0.37)) - 0.5;

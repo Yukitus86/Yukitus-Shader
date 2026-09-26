@@ -19,9 +19,10 @@ in vec2 texcoord;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex6;
+uniform sampler2D colortex7;
 uniform sampler2D depthtex0;
 
-const bool colortex0MipmapEnabled = true;
+#include "/lib/bloom_tiles.glsl"
 
 vec3 rgbToYCoCg(vec3 c) {
     return vec3(0.25 * c.r + 0.5 * c.g + 0.25 * c.b, 0.5 * c.r - 0.5 * c.b, -0.25 * c.r + 0.5 * c.g - 0.25 * c.b);
@@ -63,14 +64,24 @@ layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec4 outHistory;
 
 void main() {
-    vec3 current = texture(colortex0, texcoord).rgb;
+    vec3 current = textureLod(colortex0, texcoord, 0.0).rgb;
+    if (any(isnan(current)) || any(isinf(current))) current = vec3(0.0);
 
     //---------------------------------------------------------------------------------- exposure
     float prevExposure = texelFetch(colortex6, ivec2(0), 0).a;
     #ifdef AUTO_EXPOSURE
-        float maxLod = log2(max(viewWidth, viewHeight));
-        float avgLum = luma(textureLod(colortex0, vec2(0.5), maxLod).rgb);
-        avgLum = max(avgLum, 1e-4);
+        // average of the previous frame's smallest bloom tile (1/128 res) - no extra mipmap chain needed
+        const int tile = BLOOM_TILE_COUNT - 1;
+        vec2 tOff = bloomTileOffset(tile);
+        float tScale = bloomTileScale(tile);
+        float avgLum = 0.0;
+        for (int y = 0; y < 4; y++) {
+            for (int x = 0; x < 4; x++) {
+                avgLum += luma(textureLod(colortex7, tOff + (vec2(x, y) + 0.5) / 4.0 * tScale, 0.0).rgb);
+            }
+        }
+        avgLum = avgLum / 16.0;
+        if (!(avgLum > 1e-4 && avgLum < 1e4)) avgLum = 0.2;
         float targetExposure = clamp(0.24 / avgLum, 0.35, 2.4);
         float adapt = 1.0 - exp(-frameTime * 1.2);
         float exposure = prevExposure > 0.0 && prevExposure < 100.0 ? mix(prevExposure, targetExposure, adapt) : targetExposure;

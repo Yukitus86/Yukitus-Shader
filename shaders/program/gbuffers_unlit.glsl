@@ -1,6 +1,6 @@
 /*
     Yukitus Shader - simple / unlit geometry
-    Variants: GB_BASIC, GB_SKYBASIC, GB_SKYTEXTURED, GB_CLOUDS, GB_BEACON, GB_SPIDEREYES, GB_GLINT, GB_DAMAGED
+    Variants: GB_BASIC, GB_SKYBASIC, GB_SKYTEXTURED, GB_CLOUDS, GB_SPIDEREYES, GB_GLINT, GB_DAMAGED
 */
 #include "/lib/common.glsl"
 
@@ -54,10 +54,6 @@ void main() {
             c = applyFog(c, viewPos, viewToPlayer(viewPos));
             outColor = vec4(c, albedo.a);
         #endif
-    #elif defined GB_BEACON
-        vec4 albedo = texture(gtexture, texcoord) * glcolor;
-        if (albedo.a < 0.02) discard;
-        outColor = vec4(toLinear(albedo.rgb) * 6.0 * EMISSION_STRENGTH, albedo.a);
     #elif defined GB_SPIDEREYES
         vec4 albedo = texture(gtexture, texcoord) * glcolor;
         if (albedo.a < 0.02) discard;

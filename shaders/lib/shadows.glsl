@@ -34,15 +34,15 @@ float sampleShadowSimple(vec3 playerPos) {
 }
 
 vec3 sampleShadowColored(vec3 s) {
-    float s1 = texture(shadowtex1, s);
     #ifdef COLORED_SHADOWS
         float s0 = texture(shadowtex0, s);
-        if (s1 > s0 + 0.001) {
-            vec3 tint = texture(shadowcolor0, s.xy).rgb * 2.0;
-            return vec3(s0) + (s1 - s0) * tint;
-        }
+        if (s0 >= 0.999) return vec3(1.0);
+        float s1 = texture(shadowtex1, s);
+        if (s1 > s0 + 0.001) return vec3(s0) + (s1 - s0) * texture(shadowcolor0, s.xy).rgb * 2.0;
+        return vec3(s1);
+    #else
+        return vec3(texture(shadowtex1, s));
     #endif
-    return vec3(s1);
 }
 
 /*
@@ -88,12 +88,27 @@ vec3 getShadow(vec3 playerPos, vec3 worldNormal, float NdotL, float noise, bool 
         radius = min(radius, 12.0 / float(shadowMapResolution));
 
         float phi = noise * TAU;
-        vec3 result = vec3(0.0);
-        for (int i = 0; i < samples; i++) {
-            vec2 o = vogelDisk(i, samples, phi) * radius;
-            result += sampleShadowColored(vec3(s.xy + o, s.z));
-        }
-        return result / float(samples);
+        #ifdef COLORED_SHADOWS
+            // shadowtex0 includes translucents: fully lit there means fully lit everywhere,
+            // so shadowtex1 is only sampled where something blocks the light
+            float s0 = 0.0, s1 = 0.0;
+            for (int i = 0; i < samples; i++) {
+                vec3 p = vec3(s.xy + vogelDisk(i, samples, phi) * radius, s.z);
+                float a = texture(shadowtex0, p);
+                s0 += a;
+                s1 += a >= 0.999 ? 1.0 : texture(shadowtex1, p);
+            }
+            s0 /= float(samples);
+            s1 /= float(samples);
+            if (s1 > s0 + 0.001) return vec3(s0) + (s1 - s0) * texture(shadowcolor0, s.xy).rgb * 2.0;
+            return vec3(s1);
+        #else
+            float r = 0.0;
+            for (int i = 0; i < samples; i++) {
+                r += texture(shadowtex1, vec3(s.xy + vogelDisk(i, samples, phi) * radius, s.z));
+            }
+            return vec3(r / float(samples));
+        #endif
     #endif
 }
 

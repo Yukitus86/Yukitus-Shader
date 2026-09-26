@@ -66,7 +66,8 @@ DISPLAY=:99 python3 tools/harness/iris_emu.py render --times 0.2,0.48,0.75
 python3 tools/build.py
 ```
 
-Release: bump `VERSION` in `tools/build.py`, add `.github/release-notes/vX.Y.Z.md`, then push the tag `vX.Y.Z`.
+Release: bump `VERSION` in `tools/build.py`, add `.github/release-notes/vX.Y.Z.md`, then push the tag `vX.Y.Z`
+(or start the `Release` workflow manually in the Actions tab and enter the tag; it creates the tag itself).
 The `Release` workflow validates the pack, builds the zip from the tag and publishes it as a GitHub Release.
 
 ## Credits

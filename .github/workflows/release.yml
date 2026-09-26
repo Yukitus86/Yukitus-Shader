@@ -1,6 +1,9 @@
 name: Release
 
-# Pushing a tag like v1.0.1 builds the shader pack zip from that tag and publishes it as a GitHub Release.
+# Builds the shader pack zip and publishes it as a GitHub Release, either
+#  - when a tag like v1.0.1 is pushed, or
+#  - when started manually (Actions -> Release -> Run workflow) with a tag name: the tag is then
+#    created at the commit the workflow runs on, if it does not exist yet.
 # The tag must match VERSION in tools/build.py. Release notes are read from .github/release-notes/<tag>.md.
 on:
   push:
@@ -9,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing tag to (re)publish, e.g. v1.0.1"
+        description: "Tag to publish, e.g. v1.0.1 (created at the selected branch if it does not exist)"
         required: true
 
 permissions:
@@ -24,8 +27,6 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.TAG }}
 
       - name: Validate options, menus, profiles and lang files
         run: python3 tools/validate.py
@@ -41,6 +42,14 @@ jobs:
             exit 1
           fi
 
+      - name: Check that an existing tag points at this commit
+        run: |
+          existing=$(git ls-remote --tags origin "refs/tags/$TAG" "refs/tags/$TAG^{}" | awk '{print $1}' | tail -n 1)
+          if [ -n "$existing" ] && [ "$existing" != "$GITHUB_SHA" ]; then
+            echo "Tag $TAG already exists at $existing, but this run builds $GITHUB_SHA"
+            exit 1
+          fi
+
       - name: Publish release
         run: |
           zip="dist/Yukitus-Shader-${TAG}.zip"
@@ -48,7 +57,7 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$zip" --clobber
           elif [ -f "$notes" ]; then
-            gh release create "$TAG" "$zip" --verify-tag --title "Yukitus Shader $TAG" --notes-file "$notes"
+            gh release create "$TAG" "$zip" --target "$GITHUB_SHA" --title "Yukitus Shader $TAG" --notes-file "$notes"
           else
-            gh release create "$TAG" "$zip" --verify-tag --title "Yukitus Shader $TAG" --generate-notes
+            gh release create "$TAG" "$zip" --target "$GITHUB_SHA" --title "Yukitus Shader $TAG" --generate-notes
           fi
